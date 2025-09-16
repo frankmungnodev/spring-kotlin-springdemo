@@ -1,0 +1,70 @@
+#name: Build and Push Spring Boot Image
+#
+#on:
+#  push:
+#    branches:
+#      - main
+#  workflow_dispatch:
+#
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      # Checkout your code
+#      - name: Checkout repository
+#        uses: actions/checkout@v5
+#
+#      # Set up Podman (or Docker, works the same)
+#      - name: Set up Podman
+#        uses: redhat-actions/podman-login@v1
+#
+#      # Log in to GitHub Container Registry (GHCR)
+#      - name: Log in to GHCR
+#        uses: docker/login-action@v3
+#        with:
+#          registry: ghcr.io
+#          username: ${{ github.actor }}
+#          password: ${{ secrets.GITHUB_TOKEN }}
+#
+#      # Build multi-stage image
+#      - name: Build Image
+#        run: |
+#          podman build -t ghcr.io/${{ github.repository }}/springboot-app:latest .
+#
+#      # Push runtime image to registry
+#      - name: Push Image
+#        run: |
+#          podman push ghcr.io/${{ github.repository }}/springboot-app:latest
+
+name: Build and Push Docker image
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write  # needed to push to GHCR
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/myapp:latest
